@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Udaipur Couple Trip — Interactive Planner</title>
+<style>
+  :root{
+    --maroon:#7a1f3d;
+    --maroon-dark:#5a1730;
+    --rose:#a13a56;
+    --gold:#e8c477;
+    --gold-dark:#c99a3d;
+    --cream:#fffaf0;
+    --cream2:#fdf6ea;
+    --ink:#33231a;
+    --muted:#8a6a45;
+    --green:#2e7d4f;
+    --red:#b23b3b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:#f4ece0; color:var(--ink); line-height:1.5; padding-bottom:90px;
+  }
+  a{color:#1b5e8a;}
+  .wrap{max-width:760px; margin:0 auto; padding:0 14px;}
+
+  /* ---- HERO ---- */
+  .hero{
+    background:linear-gradient(150deg,var(--maroon) 0%, var(--rose) 55%, #c9793f 100%);
+    color:#fff8ec; padding:34px 18px 26px; text-align:center;
+    border-bottom:4px solid var(--gold);
+  }
+  .hero .eyebrow{letter-spacing:3px; font-size:11px; color:#f3d9a6; margin-bottom:8px;}
+  .hero h1{margin:0; font-size:32px; letter-spacing:1px;}
+  .hero .sub{color:#f6e6c8; font-size:13px; margin-top:6px;}
+  .hero .dates{
+    display:inline-block; margin-top:16px; border:1px solid var(--gold); border-radius:20px;
+    padding:7px 18px; font-size:13px; letter-spacing:0.5px; background:rgba(0,0,0,0.1);
+  }
+
+  /* ---- STICKY BUDGET BAR ---- */
+  .stickybar{
+    position:fixed; bottom:0; left:0; right:0; z-index:50;
+    background:var(--maroon-dark); color:#fff8ec; padding:10px 14px;
+    box-shadow:0 -3px 12px rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .stickybar .label{font-size:10.5px; color:#f3d9a6; letter-spacing:0.5px;}
+  .stickybar .amt{font-size:19px; font-weight:700;}
+  .stickybar .status{font-size:11px; padding:3px 10px; border-radius:12px; font-weight:600;}
+  .status.ok{background:#2e7d4f; color:#fff;}
+  .status.over{background:#b23b3b; color:#fff;}
+  .stickybar .progress-mini{font-size:10.5px; color:#f3d9a6;}
+
+  /* ---- NAV ---- */
+  .navbar{
+    position:sticky; top:0; z-index:40; background:#fffaf0ee; backdrop-filter:blur(4px);
+    border-bottom:1px solid #e8c47780; overflow-x:auto; white-space:nowrap;
+    padding:8px 10px; -webkit-overflow-scrolling:touch;
+  }
+  .navbar a{
+    display:inline-block; margin-right:6px; padding:6px 12px; font-size:12px;
+    background:#f3e3c8; color:var(--maroon); border-radius:14px; text-decoration:none; font-weight:600;
+  }
+  .navbar a:active{background:var(--gold);}
+
+  section{padding:22px 0 6px;}
+  .section-header{
+    background:var(--maroon); color:#fff8ec; padding:10px 16px; border-radius:6px; margin-bottom:12px;
+  }
+  .section-header h2{margin:0; font-size:17px;}
+  .section-header .tag{font-size:9.5px; color:#f3d9a6; letter-spacing:1.5px;}
+
+  .card{
+    border:1px solid var(--gold); border-left:5px solid var(--rose); background:#fffdf7;
+    border-radius:6px; padding:12px 14px; margin-bottom:10px;
+  }
+  .card h3{margin:0 0 4px; font-size:15px; color:var(--maroon);}
+  .card .meta{font-size:11px; color:var(--muted); margin-bottom:5px;}
+  .pill{display:inline-block; background:#f3e3c8; color:var(--maroon); padding:2px 9px; border-radius:10px; font-size:11px; border:1px solid var(--gold); margin:2px 3px 2px 0;}
+
+  table{width:100%; border-collapse:collapse; font-size:12.5px; margin-bottom:10px;}
+  th{background:var(--maroon); color:#fff8ec; text-align:left; padding:7px 8px; font-size:12px;}
+  td{padding:6px 8px; border-bottom:1px solid #ecdcc4; vertical-align:top;}
+  tr:nth-child(even) td{background:var(--cream2);}
+
+  .tip-box{background:#f3e9d8; border:1px dashed var(--rose); border-radius:6px; padding:10px 12px; margin:10px 0; font-size:12.5px;}
+  .tip-box b{color:var(--maroon);}
+  .note-static{font-size:10.5px; color:var(--muted); font-style:italic; margin-top:8px;}
+
+  /* ---- BUDGET TABLE (editable) ---- */
+  .budget-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .budget-table th{background:var(--maroon); color:#fff8ec; padding:8px; font-size:11.5px; text-align:left;}
+  .budget-table td{padding:6px 6px; border-bottom:1px solid #ecdcc4;}
+  .budget-table tr:nth-child(even) td{background:var(--cream2);}
+  .budget-table input[type=text]{
+    width:100%; border:none; background:transparent; font-size:13px; padding:4px; color:var(--ink); font-family:inherit;
+  }
+  .budget-table input[type=number]{
+    width:88px; border:1px solid #e0c896; border-radius:5px; padding:4px 6px; font-size:13px; text-align:right;
+    font-family:inherit; background:#fff;
+  }
+  .budget-table input:focus{outline:2px solid var(--gold);}
+  .rm-btn{
+    background:none; border:none; color:var(--red); font-size:16px; cursor:pointer; padding:2px 6px;
+  }
+  .add-row-btn{
+    margin-top:6px; background:var(--maroon); color:#fff8ec; border:none; border-radius:6px;
+    padding:8px 14px; font-size:12.5px; cursor:pointer; font-weight:600;
+  }
+  .budget-total-box{
+    background:var(--maroon); color:#fff8ec; padding:14px; border-radius:8px; text-align:center; margin-top:10px;
+  }
+  .budget-total-box .grand{font-size:26px; font-weight:700; color:var(--gold);}
+  .budget-total-box .vs{font-size:11px; color:#f3d9a6; margin-top:4px;}
+  .diff-good{color:#a6e3b8;}
+  .diff-bad{color:#ffb3b3;}
+
+  /* ---- CHECKLIST ---- */
+  .checklist-progress{
+    background:#e9dabb; border-radius:8px; height:10px; overflow:hidden; margin:6px 0 12px;
+  }
+  .checklist-progress-fill{background:linear-gradient(90deg,var(--rose),var(--gold)); height:100%; width:0%; transition:width .3s;}
+  .progress-label{font-size:11px; color:var(--muted); margin-bottom:4px;}
+  .check-item{
+    display:flex; align-items:flex-start; gap:10px; padding:8px 4px; border-bottom:1px dotted #e0c896;
+  }
+  .check-item:last-child{border-bottom:none;}
+  .check-item input[type=checkbox]{
+    width:19px; height:19px; margin-top:2px; accent-color:var(--maroon); flex-shrink:0; cursor:pointer;
+  }
+  .check-item label{font-size:13.5px; cursor:pointer; flex:1;}
+  .check-item.checked label{text-decoration:line-through; opacity:0.5;}
+  .checklist-grid{columns:2; column-gap:18px;}
+  @media (max-width:520px){ .checklist-grid{columns:1;} }
+  .checklist-grid .check-item{break-inside:avoid;}
+
+  /* ---- ITINERARY ---- */
+  .day-banner{
+    background:linear-gradient(90deg,var(--rose),#c9793f); color:#fff8ec; padding:9px 14px; border-radius:6px;
+    margin:6px 0 10px; font-size:16px; font-weight:700;
+  }
+  .stop-card{
+    border:1px solid var(--gold); border-left:5px solid var(--rose); background:#fffdf7;
+    border-radius:6px; padding:10px 12px; margin-bottom:10px; transition:opacity .2s;
+  }
+  .stop-card.done{opacity:0.55;}
+  .stop-top{display:flex; align-items:flex-start; gap:10px;}
+  .stop-top input[type=checkbox]{width:20px; height:20px; margin-top:2px; accent-color:var(--maroon); flex-shrink:0; cursor:pointer;}
+  .stop-time{font-weight:700; color:var(--rose); font-size:12.5px; min-width:56px;}
+  .stop-title{font-weight:700; font-size:14.5px; margin:0 0 3px;}
+  .stop-card.done .stop-title{text-decoration:line-through;}
+  .stop-desc{font-size:12.5px; color:#4a3626;}
+  .stop-extra{margin-top:8px; padding-top:8px; border-top:1px dashed #e0c896;}
+  .stop-extra label{display:block; font-size:10.5px; color:var(--muted); margin-bottom:2px; font-weight:600;}
+  .stop-extra input[type=text], .stop-extra textarea{
+    width:100%; border:1px solid #e0c896; border-radius:5px; padding:6px 8px; font-size:12.5px;
+    font-family:inherit; margin-bottom:6px; background:#fff;
+  }
+  .stop-extra textarea{resize:vertical; min-height:36px;}
+  .maplink-open{display:inline-block; font-size:11.5px; margin-top:2px; color:#1b5e8a; text-decoration:none;}
+  .maplink-open.hidden{display:none;}
+
+  .three-col{display:flex; gap:10px; flex-wrap:wrap;}
+  .three-col>div{flex:1; min-width:150px;}
+  .two-col{display:flex; gap:10px; flex-wrap:wrap;}
+  .two-col>div{flex:1; min-width:220px;}
+
+  footer{text-align:center; font-size:10.5px; color:var(--muted); padding:30px 14px 10px;}
+  .reset-btn{
+    background:none; border:1px solid var(--red); color:var(--red); border-radius:6px; padding:6px 12px;
+    font-size:11.5px; cursor:pointer; margin-top:10px;
+  }
+  .save-indicator{font-size:10px; color:var(--muted); margin-left:6px;}
+
+  @media (max-width:480px){
+    .hero h1{font-size:26px;}
+    .stickybar .amt{font-size:16px;}
+    .budget-table input[type=number]{width:72px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">RAJASTHAN · CITY OF LAKES</div>
+  <h1>UDAIPUR — A Couple's Escape</h1>
+  <div class="sub">Interactive travel planner · edit prices, tick off tasks, add your own notes &amp; map links</div>
+  <div class="dates">23 – 27 SEP 2026 &nbsp;|&nbsp; JAIPUR → UDAIPUR → JAIPUR</div>
+</div>
+
+<div class="navbar">
+  <a href="#trains">🚆 Trains</a>
+  <a href="#budget">💰 Budget</a>
+  <a href="#hotel">🏨 Hotel</a>
+  <a href="#scooty">🛵 Scooty</a>
+  <a href="#day1">Day 1</a>
+  <a href="#day2">Day 2</a>
+  <a href="#day3">Day 3</a>
+  <a href="#food">🍽️ Food</a>
+  <a href="#packing">🎒 Packing</a>
+  <a href="#prebook">✅ Pre-book</a>
+  <a href="#emergency">🚨 SOS</a>
+</div>
+
+<div class="wrap">
+
+<!-- TRAINS -->
+<section id="trains">
+  <div class="section-header"><h2>🚆 Train Options</h2><span class="tag">JAIPUR ⇄ UDAIPUR</span></div>
+
+  <div class="card">
+    <h3>Onward — 23 Sep, night</h3>
+    <div class="meta">19665 KURJ UDZ EXP</div>
+    <p>Departs Jaipur <b>~10:50 PM (23 Sep)</b> → Reaches Udaipur City <b>~6:55–7:00 AM (24 Sep)</b>. Duration ~8 hrs.</p>
+    <p><span class="pill">SL ₹265–295</span><span class="pill">3A ₹705–750</span><span class="pill">2A ₹1020</span></p>
+  </div>
+  <div class="card">
+    <h3>Return — 26 Sep night → 27 Sep morning</h3>
+    <div class="meta">19666 UDZ KURJ EXP</div>
+    <p>Departs Udaipur City <b>~9:50–10:10 PM (26 Sep)</b> → Reaches Jaipur <b>~5:40 AM (27 Sep)</b>. Duration ~7h 50m.</p>
+    <p><span class="pill">SL ₹280</span><span class="pill">3A ₹720–735</span><span class="pill">2A ₹1020–1040</span></p>
+  </div>
+  <div class="tip-box"><b>Book on IRCTC</b>, 60 days in advance for confirmed berths. Reconfirm exact timing on the live chart the day of travel — minutes shift slightly by season.</div>
+</section>
+
+<!-- BUDGET -->
+<section id="budget">
+  <div class="section-header"><h2>💰 Budget Planner</h2><span class="tag">EDITABLE — TAP ANY NUMBER TO CHANGE IT</span></div>
+  <p style="font-size:12.5px;color:var(--muted);">Edit the item name or ₹ amount as you actually book/spend. The total below updates instantly and compares against your ₹20,000 target.</p>
+
+  <table class="budget-table" id="budgetTable">
+    <thead><tr><th style="width:52%">Category</th><th>Amount (₹)</th><th></th></tr></thead>
+    <tbody id="budgetBody"></tbody>
+  </table>
+  <button class="add-row-btn" id="addBudgetRow">+ Add item</button>
+
+  <div class="budget-total-box">
+    <div style="font-size:11px;color:#f3d9a6;">FINAL TOTAL</div>
+    <div class="grand" id="grandTotal">₹0</div>
+    <div class="vs" id="vsTarget">vs target ₹20,000</div>
+  </div>
+</section>
+
+<!-- HOTEL -->
+<section id="hotel">
+  <div class="section-header"><h2>🏨 Where to Stay</h2><span class="tag">₹1,200–1,800/NIGHT · COUPLE FRIENDLY</span></div>
+
+  <div class="card">
+    <h3>City &amp; Palace View Guest House ★4.9</h3>
+    <div class="meta">Bhatiyani Chohatta, Old City · ~1.8 km from railway station</div>
+    <p>Top pick — quiet lane, rooftop faces City Palace, reviews confirm couple-safe stay, staff arrange scooty on request.</p>
+    <p><span class="pill">Couple friendly</span><span class="pill">AC</span><span class="pill">Wi-Fi</span><span class="pill">Hot water</span></p>
+    <p>Check-in 12 PM · Check-out 11 AM · ☎ +91 99824 72495</p>
+  </div>
+  <div class="card">
+    <h3>Udai Haveli Guest House ★4.6</h3>
+    <div class="meta">Gadiya Devra Marg, Old City</div>
+    <p>Homely haveli stay, close to City Palace Road, budget friendly. ☎ +91 93525 06701</p>
+  </div>
+  <div class="card">
+    <h3>Hotel Deep Palace ★4.2</h3>
+    <div class="meta">Udaipole Road, near Bus Stand / Railway Station</div>
+    <p>Best if you want minimal travel right after the night train. ☎ +91 94141 67909</p>
+  </div>
+  <div class="tip-box">Reconfirm live rates on Google Maps / Booking.com / by phone before booking — small guest houses update pricing seasonally.</div>
+</section>
+
+<!-- SCOOTY -->
+<section id="scooty">
+  <div class="section-header"><h2>🛵 Scooty Rental</h2><span class="tag">GET AROUND ON YOUR OWN TIME</span></div>
+  <table>
+    <tr><th>Operator</th><th>Rate/day</th><th>Deposit</th></tr>
+    <tr><td>RenTrip</td><td>₹220–350</td><td>Zero-deposit plans</td></tr>
+    <tr><td>ONN Bikes</td><td>~₹350–450</td><td>ID-based (app)</td></tr>
+    <tr><td>RentnHop</td><td>from ₹499</td><td>Varies</td></tr>
+    <tr><td>Local shops</td><td>₹300–450</td><td>₹1,000–2,000 cash or ID held</td></tr>
+  </table>
+  <div class="tip-box"><b>Docs needed:</b> Valid driving license (not learner's) + Aadhaar/ID. Your guest house can also arrange one directly — ask at check-in.</div>
+</section>
+
+<!-- DAY 1 -->
+<section id="day1">
+  <div class="section-header"><h2>📅 Day 1 — 24 September</h2><span class="tag">ARRIVAL · OLD CITY · SUNSET</span></div>
+  <div class="progress-label" id="day1ProgLabel">0 / 0 stops done</div>
+  <div class="checklist-progress"><div class="checklist-progress-fill" id="day1ProgFill"></div></div>
+  <div id="day1Stops"></div>
+</section>
+
+<!-- DAY 2 -->
+<section id="day2">
+  <div class="section-header"><h2>📅 Day 2 — 25 September</h2><span class="tag">FATEH SAGAR · ROPEWAY · MONSOON PALACE</span></div>
+  <div class="progress-label" id="day2ProgLabel">0 / 0 stops done</div>
+  <div class="checklist-progress"><div class="checklist-progress-fill" id="day2ProgFill"></div></div>
+  <div id="day2Stops"></div>
+</section>
+
+<!-- DAY 3 -->
+<section id="day3">
+  <div class="section-header"><h2>📅 Day 3 — 26 September</h2><span class="tag">HILLS · SHOPPING · RETURN TRAIN</span></div>
+  <div class="progress-label" id="day3ProgLabel">0 / 0 stops done</div>
+  <div class="checklist-progress"><div class="checklist-progress-fill" id="day3ProgFill"></div></div>
+  <div id="day3Stops"></div>
+  <div class="tip-box">Return train 19666 departs Udaipur ~9:50–10:10 PM on 26 Sep, reaching Jaipur ~5:40 AM on <b>27 Sep</b>.</div>
+</section>
+
+<!-- FOOD -->
+<section id="food">
+  <div class="section-header"><h2>🍽️ Restaurants &amp; Cafés</h2><span class="tag">MEAL-WISE PICKS</span></div>
+  <table>
+    <tr><th>Meal</th><th>Pick</th><th>Avg (2)</th></tr>
+    <tr><td>Breakfast</td><td>Jheel's Ginger Coffee Bar / Millets of Mewar</td><td>₹250–400</td></tr>
+    <tr><td>Lunch</td><td>Local thali dhaba, old city</td><td>₹350–450</td></tr>
+    <tr><td>Dinner Day1</td><td>Ambrai Restaurant (lake-facing)</td><td>₹1,200–1,500</td></tr>
+    <tr><td>Dinner Day2</td><td>Upre by 1559 AD (rooftop)</td><td>₹1,000–1,300</td></tr>
+    <tr><td>Dinner Day3</td><td>Quick café near station</td><td>₹300–400</td></tr>
+  </table>
+  <div class="three-col">
+    <div class="card"><h3>Romantic</h3><p style="font-size:12px;">Ambrai Restaurant, Jaiwana Haveli café</p></div>
+    <div class="card"><h3>Rooftop</h3><p style="font-size:12px;">Upre by 1559 AD, Sunset Terrace</p></div>
+    <div class="card"><h3>Budget</h3><p style="font-size:12px;">Millets of Mewar, Chetak Circle dhabas</p></div>
+  </div>
+</section>
+
+<!-- PACKING -->
+<section id="packing">
+  <div class="section-header"><h2>🎒 Packing Checklist</h2><span class="tag">TICK AS YOU PACK</span></div>
+  <div class="progress-label" id="packProgLabel">0 / 0 packed</div>
+  <div class="checklist-progress"><div class="checklist-progress-fill" id="packProgFill"></div></div>
+  <div class="checklist-grid" id="packingList"></div>
+</section>
+
+<!-- PRE-BOOKING -->
+<section id="prebook">
+  <div class="section-header"><h2>✅ Pre-Booking Checklist</h2><span class="tag">DO BEFORE 23 SEP</span></div>
+  <div class="progress-label" id="preProgLabel">0 / 0 done</div>
+  <div class="checklist-progress"><div class="checklist-progress-fill" id="preProgFill"></div></div>
+  <div id="prebookList"></div>
+</section>
+
+<!-- EMERGENCY -->
+<section id="emergency">
+  <div class="section-header"><h2>🚨 Emergency Info</h2><span class="tag">SAVE THESE NUMBERS</span></div>
+  <table>
+    <tr><td>All-India Emergency</td><td><b>112</b></td></tr>
+    <tr><td>Women's Helpline</td><td><b>1091</b></td></tr>
+    <tr><td>Railway Enquiry</td><td><b>139</b></td></tr>
+    <tr><td>Rajasthan Tourist Helpline</td><td><b>1800-11-1363</b></td></tr>
+    <tr><td>Nearest Hospital</td><td>Geetanjali Medical College / MB Govt Hospital, Udaipur</td></tr>
+  </table>
+</section>
+
+<footer>
+  Compiled with the latest publicly available info as of writing. Reconfirm prices &amp; timings before travel.<br>
+  <button class="reset-btn" id="resetBtn">Reset all my edits &amp; checkmarks</button>
+  <span class="save-indicator" id="saveIndicator"></span>
+</footer>
+
+</div>
+
+<div class="stickybar">
+  <div>
+    <div class="label">TRIP TOTAL</div>
+    <div class="amt" id="stickyTotal">₹0</div>
+  </div>
+  <div class="progress-mini" id="stickyProgress">0% tasks done</div>
+  <div class="status ok" id="stickyStatus">On budget</div>
+</div>
+
+<script>
+const TARGET_BUDGET = 20000;
+
+/* ---------- storage helpers ---------- */
+async function loadKey(key, fallback){
+  try{
+    const r = await window.storage.get(key, false);
+    if(r && r.value) return JSON.parse(r.value);
+    return fallback;
+  }catch(e){ return fallback; }
+}
+async function saveKey(key, value){
+  try{
+    await window.storage.set(key, JSON.stringify(value), false);
+    flashSaved();
+  }catch(e){ /* storage unavailable, ignore */ }
+}
+let saveTimer=null;
+function debounceSave(key, value){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>saveKey(key,value), 400);
+}
+function flashSaved(){
+  const el=document.getElementById('saveIndicator');
+  if(!el) return;
+  el.textContent='saved ✓';
+  setTimeout(()=>{ el.textContent=''; }, 1500);
+}
+
+/* ---------- default data ---------- */
+const defaultBudget = [
+  {id:'b1', label:'🚆 Train (to & fro)', amount:1200},
+  {id:'b2', label:'🏨 Hotel (3 nights)', amount:4500},
+  {id:'b3', label:'🛵 Scooty rental (3 days)', amount:1350},
+  {id:'b4', label:'⛽ Petrol', amount:700},
+  {id:'b5', label:'🍽️ Food (all meals)', amount:4500},
+  {id:'b6', label:'🎟️ Entry tickets & boat rides', amount:3200},
+  {id:'b7', label:'🛍️ Shopping', amount:2500},
+  {id:'b8', label:'🚨 Emergency / buffer', amount:1500},
+  {id:'b9', label:'🎈 Misc (tips, water, SIM)', amount:550},
+];
+
+const dayStops = {
+  day1: [
+    {id:'d1-1', time:'6:55 AM', title:'Reach Udaipur City Station', desc:'Freshen up or head straight to the hotel.'},
+    {id:'d1-2', time:'7:30 AM', title:'Breakfast', desc:"Jheel's Ginger Coffee Bar / Millets of Mewar, ~₹250–400 for two."},
+    {id:'d1-3', time:'9:30 AM', title:'Hotel Check-in', desc:'Drop bags; ask for early check-in or luggage storage.'},
+    {id:'d1-4', time:'11:00 AM', title:'City Palace', desc:'Complex ~₹50, museum ~₹300/adult. Allow 2–2.5 hrs.'},
+    {id:'d1-5', time:'1:30 PM', title:'Lunch near Jagdish Chowk', desc:'Local thali, ~₹400 for two.'},
+    {id:'d1-6', time:'2:30 PM', title:'Jagdish Temple', desc:'1651 CE Vishnu temple, free entry, ~20 min.'},
+    {id:'d1-7', time:'3:15 PM', title:'Gangaur Ghat', desc:'Lakeside ghat, great for photos.'},
+    {id:'d1-8', time:'4:00 PM', title:'Lake Pichola Boat Ride', desc:'~₹400/adult regular, ~₹700/adult sunset cruise.'},
+    {id:'d1-9', time:'6:15 PM', title:'Sunset Point (Ambrai Ghat)', desc:'Golden-hour City Palace view across the water.'},
+    {id:'d1-10', time:'8:00 PM', title:'Romantic Dinner — Ambrai Restaurant', desc:'Waterfront dining facing City Palace, ~₹1,200–1,500 for two.'},
+  ],
+  day2: [
+    {id:'d2-1', time:'8:00 AM', title:'Breakfast at hotel/café', desc:'Light start before a full sightseeing day.'},
+    {id:'d2-2', time:'9:00 AM', title:'Fateh Sagar Lake', desc:'No entry fee. Boating ~₹100–500/person.'},
+    {id:'d2-3', time:'10:30 AM', title:'Neemach Mata / Karni Mata Ropeway', desc:'~₹118–160 round trip. Go before 11 AM for fewer crowds.'},
+    {id:'d2-4', time:'12:00 PM', title:'Saheliyon Ki Bari', desc:'Garden of the Maidens. Entry ~₹10–50.'},
+    {id:'d2-5', time:'1:00 PM', title:'Lunch', desc:'Café near Fateh Sagar, ~₹400–500 for two.'},
+    {id:'d2-6', time:'2:30 PM', title:'Vintage Car Museum', desc:'Mewar royal classic cars. Entry ~₹200–250.'},
+    {id:'d2-7', time:'4:00 PM', title:'Sajjangarh / Monsoon Palace', desc:'Entry ~₹100 + vehicle charge. Arrive by 5–5:30 PM.'},
+    {id:'d2-8', time:'6:30 PM', title:'Sunset from Monsoon Palace', desc:'Best panoramic sunset in Udaipur — 3 lakes visible.'},
+    {id:'d2-9', time:'8:30 PM', title:'Rooftop Dinner — Upre by 1559 AD', desc:'City/lake view rooftop, ~₹1,000–1,300 for two.'},
+  ],
+  day3: [
+    {id:'d3-1', time:'8:00 AM', title:'Breakfast & pack', desc:'Pack bags before checkout.'},
+    {id:'d3-2', time:'9:00 AM', title:'Badi Lake (Tiger Lake)', desc:'Quiet, less touristy lake. No entry fee.'},
+    {id:'d3-3', time:'10:30 AM', title:'Hills viewpoint scooty ride', desc:'Scenic Aravalli loop for last couple photos.'},
+    {id:'d3-4', time:'12:00 PM', title:'Hotel check-out', desc:'Store luggage if leaving later in the evening.'},
+    {id:'d3-5', time:'12:30 PM', title:'Lunch', desc:'Near Bapu Bazaar, ~₹350–400 for two.'},
+    {id:'d3-6', time:'1:30 PM', title:'Shopping — Hathi Pol & Bapu Bazaar', desc:'Paintings, juttis, bandhej, silver jewellery.'},
+    {id:'d3-7', time:'4:30 PM', title:'Wrap up & snack', desc:'Grab a bite before heading to the station.'},
+    {id:'d3-8', time:'6:00 PM', title:'Return scooty, settle hotel dues', desc:'Return with full tank, collect deposit/ID.'},
+    {id:'d3-9', time:'9:00 PM', title:'Reach Udaipur City Station', desc:'Buffer before ~9:50–10:10 PM departure (19666).'},
+    {id:'d3-10', time:'5:40 AM*', title:'Reach Jaipur (27 Sep)', desc:'Trip complete! 🌸'},
+  ],
+};
+
+const packingItems = [
+  'Light cotton clothes','One modest outfit for temples','Comfortable walking shoes',
+  'Light jacket/stole','Phone + charger','Power bank','Camera + memory card',
+  'Govt photo ID (original + copy)','Train e-tickets','Hotel booking confirmation',
+  'Driving license (for scooty)','Basic medicines','Mosquito repellent','Sunscreen & sunglasses',
+  'Raincoat / compact umbrella','Hand sanitizer & wipes','Cash (₹3,000–4,000 buffer)',
+  'UPI apps ready','Reusable water bottle','Small day-bag',
+];
+
+const prebookItems = [
+  'Book train tickets (19665 onward / 19666 return) on IRCTC',
+  'Confirm hotel booking & check-in/out times',
+  'Pre-call/WhatsApp scooty rental to reserve',
+  'Check Udaipur weather forecast 2–3 days before',
+  'Carry printed ID proof + train ticket copies',
+  'Set up UPI with sufficient balance',
+  'Keep some cash for places without UPI',
+  'Reserve Ambrai / rooftop dinner table a day ahead',
+];
+
+/* ---------- state ---------- */
+let budgetState = [];
+let checklistState = {};   // {id: true/false} for stops, packing, prebook
+let notesState = {};       // {id: {note:'', map:''}}
+
+/* ---------- render budget ---------- */
+function renderBudget(){
+  const body = document.getElementById('budgetBody');
+  body.innerHTML='';
+  budgetState.forEach((row, idx)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${escapeHtml(row.label)}" data-idx="${idx}" data-field="label"></td>
+      <td><input type="number" value="${row.amount}" data-idx="${idx}" data-field="amount" min="0"></td>
+      <td><button class="rm-btn" data-idx="${idx}" title="Remove">✕</button></td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', onBudgetInput);
+  });
+  body.querySelectorAll('.rm-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = parseInt(btn.dataset.idx);
+      budgetState.splice(idx,1);
+      renderBudget();
+      updateTotals();
+      debounceSave('budget-items', budgetState);
+    });
+  });
+  updateTotals();
+}
+function onBudgetInput(e){
+  const idx = parseInt(e.target.dataset.idx);
+  const field = e.target.dataset.field;
+  if(field==='amount'){
+    budgetState[idx].amount = parseFloat(e.target.value)||0;
+  } else {
+    budgetState[idx].label = e.target.value;
+  }
+  updateTotals();
+  debounceSave('budget-items', budgetState);
+}
+function updateTotals(){
+  const total = budgetState.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+  const fmt = n => '₹' + n.toLocaleString('en-IN');
+  document.getElementById('grandTotal').textContent = fmt(total);
+  document.getElementById('stickyTotal').textContent = fmt(total);
+  const diff = TARGET_BUDGET - total;
+  const vsEl = document.getElementById('vsTarget');
+  const statusEl = document.getElementById('stickyStatus');
+  if(diff >= 0){
+    vsEl.innerHTML = `<span class="diff-good">₹${diff.toLocaleString('en-IN')} under target ₹20,000</span>`;
+    statusEl.textContent = 'On budget'; statusEl.className='status ok';
+  } else {
+    vsEl.innerHTML = `<span class="diff-bad">₹${Math.abs(diff).toLocaleString('en-IN')} over target ₹20,000</span>`;
+    statusEl.textContent = 'Over budget'; statusEl.className='status over';
+  }
+}
+
+/* ---------- render itinerary stops ---------- */
+function renderStops(dayKey, containerId, progLabelId, progFillId){
+  const container = document.getElementById(containerId);
+  container.innerHTML='';
+  dayStops[dayKey].forEach(stop=>{
+    const checked = !!checklistState[stop.id];
+    const noteObj = notesState[stop.id] || {note:'', map:''};
+    const card = document.createElement('div');
+    card.className = 'stop-card' + (checked ? ' done':'');
+    card.innerHTML = `
+      <div class="stop-top">
+        <input type="checkbox" data-id="${stop.id}" class="stop-check" ${checked?'checked':''}>
+        <div style="flex:1;">
+          <div class="stop-time">${stop.time}</div>
+          <div class="stop-title">${escapeHtml(stop.title)}</div>
+          <div class="stop-desc">${escapeHtml(stop.desc)}</div>
+        </div>
+      </div>
+      <div class="stop-extra">
+        <label>📍 Google Maps link (add once you find it)</label>
+        <input type="text" placeholder="Paste Google Maps link here" data-id="${stop.id}" class="stop-map" value="${escapeHtml(noteObj.map)}">
+        <a href="${escapeAttr(noteObj.map)}" target="_blank" class="maplink-open ${noteObj.map?'':'hidden'}" data-id="${stop.id}-link">Open in Maps ↗</a>
+        <label>📝 Your note (actual price you paid, timing, anything)</label>
+        <textarea placeholder="e.g. Paid ₹350 for boat ride, less crowd before 9am..." data-id="${stop.id}" class="stop-note">${escapeHtml(noteObj.note)}</textarea>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  container.querySelectorAll('.stop-check').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const id = cb.dataset.id;
+      checklistState[id] = cb.checked;
+      cb.closest('.stop-card').classList.toggle('done', cb.checked);
+      debounceSave('checklist-state', checklistState);
+      updateStopProgress(dayKey, progLabelId, progFillId);
+      updateStickyProgress();
+    });
+  });
+  container.querySelectorAll('.stop-map').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const id = inp.dataset.id;
+      notesState[id] = notesState[id] || {note:'',map:''};
+      notesState[id].map = inp.value;
+      const link = container.querySelector(`a[data-id="${id}-link"]`);
+      if(link){
+        link.href = inp.value;
+        link.classList.toggle('hidden', !inp.value);
+      }
+      debounceSave('notes-state', notesState);
+    });
+  });
+  container.querySelectorAll('.stop-note').forEach(ta=>{
+    ta.addEventListener('input', ()=>{
+      const id = ta.dataset.id;
+      notesState[id] = notesState[id] || {note:'',map:''};
+      notesState[id].note = ta.value;
+      debounceSave('notes-state', notesState);
+    });
+  });
+
+  updateStopProgress(dayKey, progLabelId, progFillId);
+}
+function updateStopProgress(dayKey, progLabelId, progFillId){
+  const stops = dayStops[dayKey];
+  const done = stops.filter(s=>checklistState[s.id]).length;
+  document.getElementById(progLabelId).textContent = `${done} / ${stops.length} stops done`;
+  document.getElementById(progFillId).style.width = (stops.length? (done/stops.length*100):0) + '%';
+}
+
+/* ---------- render simple checklists (packing / prebook) ---------- */
+function idFor(prefix, i){ return prefix + '-' + i; }
+
+function renderSimpleChecklist(items, prefix, containerId, progLabelId, progFillId, gridClass){
+  const container = document.getElementById(containerId);
+  container.className = gridClass || '';
+  container.innerHTML='';
+  items.forEach((text,i)=>{
+    const id = idFor(prefix,i);
+    const checked = !!checklistState[id];
+    const item = document.createElement('div');
+    item.className = 'check-item' + (checked?' checked':'');
+    item.innerHTML = `<input type="checkbox" id="${id}" ${checked?'checked':''}><label for="${id}">${escapeHtml(text)}</label>`;
+    container.appendChild(item);
+  });
+  container.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      checklistState[cb.id] = cb.checked;
+      cb.closest('.check-item').classList.toggle('checked', cb.checked);
+      debounceSave('checklist-state', checklistState);
+      updateSimpleProgress(items, prefix, progLabelId, progFillId);
+      updateStickyProgress();
+    });
+  });
+  updateSimpleProgress(items, prefix, progLabelId, progFillId);
+}
+function updateSimpleProgress(items, prefix, progLabelId, progFillId){
+  const done = items.filter((_,i)=>checklistState[idFor(prefix,i)]).length;
+  document.getElementById(progLabelId).textContent = `${done} / ${items.length} done`;
+  document.getElementById(progFillId).style.width = (items.length? (done/items.length*100):0) + '%';
+}
+
+/* ---------- sticky overall progress ---------- */
+function updateStickyProgress(){
+  const allIds = [
+    ...dayStops.day1.map(s=>s.id),
+    ...dayStops.day2.map(s=>s.id),
+    ...dayStops.day3.map(s=>s.id),
+    ...packingItems.map((_,i)=>idFor('pk',i)),
+    ...prebookItems.map((_,i)=>idFor('pb',i)),
+  ];
+  const done = allIds.filter(id=>checklistState[id]).length;
+  const pct = allIds.length ? Math.round(done/allIds.length*100) : 0;
+  document.getElementById('stickyProgress').textContent = `${pct}% tasks done`;
+}
+
+/* ---------- utils ---------- */
+function escapeHtml(str){
+  return (str||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function escapeAttr(str){ return escapeHtml(str); }
+
+/* ---------- init ---------- */
+async function init(){
+  budgetState = await loadKey('budget-items', JSON.parse(JSON.stringify(defaultBudget)));
+  checklistState = await loadKey('checklist-state', {});
+  notesState = await loadKey('notes-state', {});
+
+  renderBudget();
+  renderStops('day1','day1Stops','day1ProgLabel','day1ProgFill');
+  renderStops('day2','day2Stops','day2ProgLabel','day2ProgFill');
+  renderStops('day3','day3Stops','day3ProgLabel','day3ProgFill');
+  renderSimpleChecklist(packingItems,'pk','packingList','packProgLabel','packProgFill','checklist-grid');
+  renderSimpleChecklist(prebookItems,'pb','prebookList','preProgLabel','preProgFill','');
+  updateStickyProgress();
+
+  document.getElementById('addBudgetRow').addEventListener('click', ()=>{
+    budgetState.push({id:'b'+Date.now(), label:'New item', amount:0});
+    renderBudget();
+    debounceSave('budget-items', budgetState);
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', async ()=>{
+    if(!confirm('This will clear all your edits, prices and checkmarks. Continue?')) return;
+    try{
+      await window.storage.delete('budget-items', false);
+      await window.storage.delete('checklist-state', false);
+      await window.storage.delete('notes-state', false);
+    }catch(e){}
+    budgetState = JSON.parse(JSON.stringify(defaultBudget));
+    checklistState = {};
+    notesState = {};
+    renderBudget();
+    renderStops('day1','day1Stops','day1ProgLabel','day1ProgFill');
+    renderStops('day2','day2Stops','day2ProgLabel','day2ProgFill');
+    renderStops('day3','day3Stops','day3ProgLabel','day3ProgFill');
+    renderSimpleChecklist(packingItems,'pk','packingList','packProgLabel','packProgFill','checklist-grid');
+    renderSimpleChecklist(prebookItems,'pb','prebookList','preProgLabel','preProgFill','');
+    updateStickyProgress();
+  });
+}
+init();
+</script>
+</body>
+</html>
